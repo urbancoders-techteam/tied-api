@@ -1,0 +1,2 @@
+RewriteCond %{HTTP_HOST} !^www.taksheela.com$ [NC]
+RewriteRule ^(.*)$ https://www.taksheela.com/$1 [L,R=301]
