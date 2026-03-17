@@ -34,6 +34,7 @@ const {
 const staffModel = require("../model/staffModel");
 const { default: mongoose } = require("mongoose");
 const Batch = require("../model/batch.js");
+const { sendMeetingScheduleEmail } = require("../services/emailService");
 
 //SECTION - Student SignUp
 exports.signUp = async (req, res) => {
@@ -730,7 +731,7 @@ exports.studentGetWeb = async (req, res) => {
 };
 
 //SECTION - schedule meeting form
-exports.scheduleMeetingForm = async (req, res) => {
+exports.scheduleMeetingForm = async (req, res) => {  
   try {
     const { name, phone, email } = req.body;
 
@@ -747,6 +748,13 @@ exports.scheduleMeetingForm = async (req, res) => {
     }
 
     await newMeeting.save();
+
+    // Send confirmation email via EmailJS (non-blocking)
+    const emailResult = await sendMeetingScheduleEmail({ name, email, phone });
+    if (!emailResult.success) {
+      console.error("Schedule meeting email failed:", emailResult.error);
+    }
+
     sendResponse(res, 200, null, Messages.MEETING_SCHEDULED);
   } catch (error) {
     sendResponse(res, 400, null, error.message);
