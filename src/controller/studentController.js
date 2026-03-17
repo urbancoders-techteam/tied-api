@@ -638,13 +638,14 @@ exports.getAllGetInTouch = async (req, res) => {
 
     const filter = {};
 
-    // 🔍 Search (optional) by email, remark, mobile
+    // 🔍 Search (optional) by email, remark, mobile, name
     if (search) {
-      const searchAsNumber = !isNaN(Number(search)) ? Number(search) : null;
       filter.$or = [
         { email: { $regex: search, $options: "i" } },
         { remark: { $regex: search, $options: "i" } },
-        ...(searchAsNumber ? [{ mobile: searchAsNumber }] : []),
+        { name: { $regex: search, $options: "i" } },
+        { from_name: { $regex: search, $options: "i" } },
+        { mobile: { $regex: search, $options: "i" } },
       ];
     }
 
@@ -660,9 +661,11 @@ exports.getAllGetInTouch = async (req, res) => {
     // Format response
     const formattedData = users.map((item) => ({
       _id: item._id,
+      name: item?.name ?? null,
       email: item?.email ?? null,
       mobile: item?.mobile ?? null,
       remark: item?.remark ?? null,
+      from_name: item?.from_name ?? null,
       createdBy: item?.createdBy
         ? { id: item.createdBy._id, username: item.createdBy.username }
         : null,
@@ -730,32 +733,39 @@ exports.studentGetWeb = async (req, res) => {
   }
 };
 
-//SECTION - schedule meeting form
-exports.scheduleMeetingForm = async (req, res) => {  
+//SECTION - schedule meeting form (contact form: name, email, message, phone, from_name)
+exports.scheduleMeetingForm = async (req, res) => {
   try {
-    const { name, phone, email } = req.body;
+    const { name, email, message, phone, from_name } = req.body;
 
-    const newMeeting = new ScheduleMeeting({
-      name,
-      phone,
+    if (!email) {
+      return sendResponse(res, 400, null, "Email is required");
+    }
+
+    const newEntry = new GetInTouch({
+      name: name || undefined,
       email,
-      createdAt: getCurrentISTTime(),
+      remark: message || undefined,
+      mobile: phone || undefined,
+      from_name: from_name || "TIE",
     });
 
-    // Conditionally set createdBy if token is present
     if (req.meta && req?.meta?._id) {
-      newMeeting.createdBy = req?.meta?._id;
+      newEntry.createdBy = req.meta._id;
     }
 
-    await newMeeting.save();
+    await newEntry.save();
 
-    // Send confirmation email via EmailJS (non-blocking)
-    const emailResult = await sendMeetingScheduleEmail({ name, email, phone });
+    const emailResult = await sendMeetingScheduleEmail({
+      name: name || "",
+      email,
+      phone: phone || "",
+    });
     if (!emailResult.success) {
-      console.error("Schedule meeting email failed:", emailResult.error);
+      console.error("Contact form email failed:", emailResult.error);
     }
 
-    sendResponse(res, 200, null, Messages.MEETING_SCHEDULED);
+    sendResponse(res, 201, { _id: newEntry._id }, "Message sent successfully");
   } catch (error) {
     sendResponse(res, 400, null, error.message);
   }

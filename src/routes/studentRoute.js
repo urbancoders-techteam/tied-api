@@ -65,7 +65,7 @@ router.delete(
 //Get student for web
 router.get("/get-student-web", ValidateToken, StudentController.studentGetWeb);
 
-//Schedule student meeting
+//Schedule student meeting / contact form (name, email, message, phone, from_name)
 router.post("/schedule-meeting", StudentController.scheduleMeetingForm);
 
 //Scheduled meeting get of all student

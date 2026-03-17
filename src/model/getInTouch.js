@@ -2,9 +2,13 @@ const mongoose = require("mongoose");
 
 const getInTouchSchema = new mongoose.Schema(
   {
+    name: {
+      type: String,
+      required: false,
+    },
     mobile: {
-      type: Number,
-      required: true,
+      type: String,
+      required: false,
     },
     email: {
       type: String,
@@ -14,9 +18,15 @@ const getInTouchSchema = new mongoose.Schema(
       type: String,
       required: false,
     },
+    from_name: {
+      type: String,
+      required: false,
+      default: "TIE",
+    },
     createdBy: {
       type: mongoose.Types.ObjectId,
       ref: "Student",
+      required: false,
     },
   },
   { timestamps: true }
