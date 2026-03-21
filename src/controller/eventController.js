@@ -246,7 +246,8 @@ exports.getAllEventsForWeb = async (req, res) => {
         title: item.title,
         date: item.date,
         description: item.description,
-        image: item.image ? await getSignedUrlImage(item.image) : null,
+        // image: item.image ? await getSignedUrlImage(item.image) : null,
+        image: item.image ? item.image : null,
         status: item.status,
         createdAt: item.createdAt,
       }))
