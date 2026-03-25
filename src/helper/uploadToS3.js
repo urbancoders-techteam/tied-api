@@ -210,7 +210,7 @@ const getSignedUrl = async (key) => {
     const params = {
       Bucket: process.env.BUCKET,
       Key: key,
-      Expires: 60,
+      Expires: 5000,
       ResponseContentDisposition: "attachment",
     };
     const s3info = await s3.getSignedUrlPromise("getObject", params);
